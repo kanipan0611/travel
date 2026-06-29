@@ -23,6 +23,7 @@ class Trip(Base):
     schedule_items = relationship("ScheduleItem", back_populates="trip", cascade="all, delete-orphan")
     checklist_items = relationship("ChecklistItem", back_populates="trip", cascade="all, delete-orphan")
     members = relationship("Member", back_populates="trip", cascade="all, delete-orphan")
+    availability_submissions = relationship("AvailabilitySubmission", back_populates="trip", cascade="all, delete-orphan")
 
 
 class Spot(Base):
@@ -100,3 +101,17 @@ class Wishlist(Base):
     name = Column(String, nullable=False)
     memo = Column(Text, nullable=True)
     area = Column(String, nullable=True)
+
+
+class AvailabilitySubmission(Base):
+    __tablename__ = "availability_submissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    trip_id = Column(Integer, ForeignKey("trips.id"), nullable=False)
+    name = Column(String, nullable=False)
+    # JSON array of "YYYY-MM-DD" strings stored as text
+    available_dates = Column(Text, nullable=False, default="[]")
+    memo = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    trip = relationship("Trip", back_populates="availability_submissions")

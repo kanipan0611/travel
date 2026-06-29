@@ -156,6 +156,34 @@ class MemberResponse(MemberBase):
         from_attributes = True
 
 
+# AvailabilitySubmission
+class AvailabilitySubmissionCreate(BaseModel):
+    name: str
+    available_dates: List[str]  # ["YYYY-MM-DD", ...]
+    memo: Optional[str] = None
+
+class AvailabilitySubmissionUpdate(BaseModel):
+    name: Optional[str] = None
+    available_dates: Optional[List[str]] = None
+    memo: Optional[str] = None
+
+class AvailabilitySubmissionResponse(BaseModel):
+    id: int
+    trip_id: int
+    name: str
+    available_dates: List[str]
+    memo: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class OverlapResult(BaseModel):
+    common_dates: List[str]
+    periods: List[dict]  # [{start, end, days}]
+    submissions: List[AvailabilitySubmissionResponse]
+
+
 # Wishlist
 class WishlistBase(BaseModel):
     name: str

@@ -52,6 +52,13 @@ export const createMember = (tripId, data) => req('POST', `/trips/${tripId}/memb
 export const updateMember = (tripId, memberId, data) => req('PATCH', `/trips/${tripId}/members/${memberId}`, data)
 export const deleteMember = (tripId, memberId) => req('DELETE', `/trips/${tripId}/members/${memberId}`)
 
+// Availability
+export const getAvailability = (tripId) => req('GET', `/trips/${tripId}/availability/`)
+export const getAvailabilityOverlap = (tripId) => req('GET', `/trips/${tripId}/availability/overlap`)
+export const createAvailability = (tripId, data) => req('POST', `/trips/${tripId}/availability/`, data)
+export const updateAvailability = (tripId, subId, data) => req('PATCH', `/trips/${tripId}/availability/${subId}`, data)
+export const deleteAvailability = (tripId, subId) => req('DELETE', `/trips/${tripId}/availability/${subId}`)
+
 // Wishlist
 export const getWishlist = () => req('GET', '/wishlist/')
 export const createWishlistItem = (data) => req('POST', '/wishlist/', data)

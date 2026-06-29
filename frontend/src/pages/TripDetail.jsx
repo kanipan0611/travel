@@ -8,6 +8,7 @@ import Schedule from './tabs/Schedule.jsx'
 import Budget from './tabs/Budget.jsx'
 import Checklist from './tabs/Checklist.jsx'
 import Settlement from './tabs/Settlement.jsx'
+import Availability from './tabs/Availability.jsx'
 import '../styles/tripdetail.css'
 
 const STATUS_LABELS = {
@@ -24,6 +25,7 @@ const TABS = [
   { key: 'budget', label: '予算' },
   { key: 'checklist', label: '持ち物' },
   { key: 'settlement', label: '精算' },
+  { key: 'availability', label: '日程調整' },
 ]
 
 export default function TripDetail() {
@@ -64,6 +66,7 @@ export default function TripDetail() {
       {tab === 'budget' && <Budget tripId={id} trip={trip} />}
       {tab === 'checklist' && <Checklist tripId={id} />}
       {tab === 'settlement' && <Settlement tripId={id} trip={trip} />}
+      {tab === 'availability' && <Availability tripId={id} />}
     </div>
   )
 }
