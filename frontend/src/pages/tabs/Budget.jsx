@@ -1,65 +1,99 @@
 import { useState, useEffect } from 'react'
-import { getExpenses, createExpense, updateExpense, deleteExpense } from '../../api.js'
+import { getExpenses, createExpense, updateExpense, deleteExpense, getMembers } from '../../api.js'
 import BudgetBar from '../../components/BudgetBar.jsx'
 
 const CATEGORIES = ['交通', '宿泊', '食事', 'アクティビティ', 'お土産', 'その他']
-const EMPTY_FORM = { category: '交通', label: '', amount: '', paid_by: '', scheduled_day: '' }
+
+function emptyForm(members) {
+  return {
+    category: '交通',
+    label: '',
+    amount: '',
+    paid_by: members[0]?.name ?? '',
+    scheduled_day: '',
+    participants: members.map(m => m.name),
+  }
+}
 
 export default function Budget({ tripId, trip }) {
   const [expenses, setExpenses] = useState([])
+  const [members, setMembers] = useState([])
   const [showModal, setShowModal] = useState(false)
   const [editExp, setEditExp] = useState(null)
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [form, setForm] = useState(null)
   const [perPerson, setPerPerson] = useState(false)
 
-  useEffect(() => { loadExpenses() }, [tripId])
+  useEffect(() => { loadAll() }, [tripId])
 
-  async function loadExpenses() {
-    setExpenses(await getExpenses(tripId))
+  async function loadAll() {
+    const [exps, mems] = await Promise.all([getExpenses(tripId), getMembers(tripId)])
+    setExpenses(exps)
+    setMembers(mems)
   }
 
   function openCreate() {
     setEditExp(null)
-    setForm(EMPTY_FORM)
+    setForm(emptyForm(members))
     setShowModal(true)
   }
 
   function openEdit(exp) {
     setEditExp(exp)
-    setForm({ category: exp.category, label: exp.label, amount: exp.amount, paid_by: exp.paid_by || '', scheduled_day: exp.scheduled_day || '' })
+    setForm({
+      category: exp.category,
+      label: exp.label,
+      amount: exp.amount,
+      paid_by: exp.paid_by || '',
+      scheduled_day: exp.scheduled_day || '',
+      participants: exp.participants ?? members.map(m => m.name),
+    })
     setShowModal(true)
+  }
+
+  function toggleParticipant(name) {
+    setForm(f => {
+      const cur = f.participants ?? []
+      return {
+        ...f,
+        participants: cur.includes(name) ? cur.filter(n => n !== name) : [...cur, name],
+      }
+    })
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
-    const payload = { ...form, amount: parseInt(form.amount) }
-    if (!payload.paid_by) delete payload.paid_by
-    if (payload.scheduled_day) payload.scheduled_day = parseInt(payload.scheduled_day)
-    else delete payload.scheduled_day
+    const payload = {
+      ...form,
+      amount: parseInt(form.amount),
+      paid_by: form.paid_by || null,
+      scheduled_day: form.scheduled_day ? parseInt(form.scheduled_day) : null,
+      participants: form.participants.length > 0 ? form.participants : null,
+    }
     if (editExp) {
       await updateExpense(tripId, editExp.id, payload)
     } else {
       await createExpense(tripId, payload)
     }
     setShowModal(false)
-    loadExpenses()
+    loadAll()
   }
 
   async function handleDelete(exp) {
     if (!confirm('削除しますか？')) return
     await deleteExpense(tripId, exp.id)
-    loadExpenses()
+    loadAll()
   }
 
   const total = expenses.reduce((s, e) => s + e.amount, 0)
   const divisor = perPerson ? (trip.member_count || 1) : 1
 
-  // Category breakdown
   const catMap = {}
   for (const exp of expenses) {
     catMap[exp.category] = (catMap[exp.category] || 0) + exp.amount
   }
   const maxCat = Math.max(...Object.values(catMap), 1)
+
+  const allNames = members.map(m => m.name)
 
   return (
     <div>
@@ -91,12 +125,10 @@ export default function Budget({ tripId, trip }) {
       )}
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <label style={{ fontSize: '0.875rem' }}>
-            <input type="checkbox" checked={perPerson} onChange={e => setPerPerson(e.target.checked)} style={{ width: 'auto', marginRight: '0.25rem' }} />
-            一人あたり表示
-          </label>
-        </div>
+        <label style={{ fontSize: '0.875rem' }}>
+          <input type="checkbox" checked={perPerson} onChange={e => setPerPerson(e.target.checked)} style={{ width: 'auto', marginRight: '0.25rem' }} />
+          一人あたり表示
+        </label>
         <button className="btn btn-primary btn-sm" onClick={openCreate}>+ 支出を追加</button>
       </div>
 
@@ -122,32 +154,39 @@ export default function Budget({ tripId, trip }) {
               <th>カテゴリ</th>
               <th>内容</th>
               <th>支払者</th>
+              <th>対象者</th>
               <th style={{ textAlign: 'right' }}>金額</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {expenses.length === 0 ? (
-              <tr><td colSpan={5} className="empty-state">支出がありません</td></tr>
-            ) : expenses.map(exp => (
-              <tr key={exp.id}>
-                <td><span style={{ fontSize: '0.8rem' }}>{exp.category}</span></td>
-                <td>{exp.label}</td>
-                <td style={{ color: 'var(--gray-500)' }}>{exp.paid_by || '-'}</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>¥{Math.floor(exp.amount / divisor).toLocaleString()}</td>
-                <td>
-                  <div style={{ display: 'flex', gap: '0.25rem' }}>
-                    <button className="btn btn-secondary btn-sm" onClick={() => openEdit(exp)}>編集</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(exp)}>削除</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+              <tr><td colSpan={6} className="empty-state">支出がありません</td></tr>
+            ) : expenses.map(exp => {
+              const parts = exp.participants ?? allNames
+              return (
+                <tr key={exp.id}>
+                  <td><span style={{ fontSize: '0.8rem' }}>{exp.category}</span></td>
+                  <td>{exp.label}</td>
+                  <td style={{ color: 'var(--gray-500)' }}>{exp.paid_by || '-'}</td>
+                  <td style={{ fontSize: '0.78rem', color: 'var(--gray-500)' }}>
+                    {parts.length === allNames.length ? '全員' : parts.join('・')}
+                  </td>
+                  <td style={{ textAlign: 'right', fontWeight: 600 }}>¥{Math.floor(exp.amount / divisor).toLocaleString()}</td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.25rem' }}>
+                      <button className="btn btn-secondary btn-sm" onClick={() => openEdit(exp)}>編集</button>
+                      <button className="btn btn-danger btn-sm" onClick={() => handleDelete(exp)}>削除</button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </div>
 
-      {showModal && (
+      {showModal && form && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
@@ -174,9 +213,39 @@ export default function Budget({ tripId, trip }) {
                 </div>
                 <div className="form-group">
                   <label>支払者</label>
-                  <input value={form.paid_by} onChange={e => setForm({ ...form, paid_by: e.target.value })} />
+                  {members.length > 0 ? (
+                    <select value={form.paid_by} onChange={e => setForm({ ...form, paid_by: e.target.value })}>
+                      <option value="">— 未選択 —</option>
+                      {members.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+                    </select>
+                  ) : (
+                    <input value={form.paid_by} onChange={e => setForm({ ...form, paid_by: e.target.value })} placeholder="名前" />
+                  )}
                 </div>
               </div>
+
+              {members.length > 0 && (
+                <div className="form-group">
+                  <label>割り勘対象者</label>
+                  <div className="participant-checks">
+                    {members.map(m => (
+                      <label key={m.id} className="participant-check-label">
+                        <input
+                          type="checkbox"
+                          style={{ width: 'auto' }}
+                          checked={(form.participants ?? []).includes(m.name)}
+                          onChange={() => toggleParticipant(m.name)}
+                        />
+                        {m.name}
+                      </label>
+                    ))}
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--gray-500)', marginTop: '4px' }}>
+                    ※ 全員チェックで全員割り勘
+                  </div>
+                </div>
+              )}
+
               <div className="form-group">
                 <label>日程 (日目)</label>
                 <input type="number" min="1" value={form.scheduled_day} onChange={e => setForm({ ...form, scheduled_day: e.target.value })} />

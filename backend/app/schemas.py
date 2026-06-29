@@ -71,6 +71,7 @@ class ExpenseBase(BaseModel):
     amount: int
     paid_by: Optional[str] = None
     scheduled_day: Optional[int] = None
+    participants: Optional[List[str]] = None  # null = all members
 
 class ExpenseCreate(ExpenseBase):
     trip_id: int
@@ -81,6 +82,7 @@ class ExpenseUpdate(BaseModel):
     amount: Optional[int] = None
     paid_by: Optional[str] = None
     scheduled_day: Optional[int] = None
+    participants: Optional[List[str]] = None
 
 class ExpenseResponse(ExpenseBase):
     id: int

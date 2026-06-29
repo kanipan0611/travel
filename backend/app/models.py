@@ -53,6 +53,8 @@ class Expense(Base):
     amount = Column(Integer, nullable=False)
     paid_by = Column(String, nullable=True)
     scheduled_day = Column(Integer, nullable=True)
+    # JSON array of member names who share this expense. null = all members.
+    participants = Column(Text, nullable=True)
 
     trip = relationship("Trip", back_populates="expenses")
 

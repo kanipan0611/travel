@@ -314,3 +314,8 @@ tr:hover td { background: var(--gray-50); }
 .avail-sub-dates { display: flex; flex-wrap: wrap; gap: 4px; }
 .avail-date-chip { font-size: 12px; padding: 2px 8px; background: var(--gray-100); border-radius: 12px; }
 .avail-date-chip.overlap { background: #dcfce7; color: #15803d; font-weight: 600; }
+
+/* participant checkboxes in expense form */
+.participant-checks { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.participant-check-label { display: flex; align-items: center; gap: 4px; font-size: 0.875rem; cursor: pointer; padding: 4px 10px; border: 1px solid var(--gray-200); border-radius: 20px; user-select: none; }
+.participant-check-label:has(input:checked) { background: var(--primary); color: #fff; border-color: var(--primary); }

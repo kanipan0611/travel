@@ -2,27 +2,42 @@ import { useState, useEffect } from 'react'
 import { getExpenses, getMembers, createMember, deleteMember } from '../../api.js'
 
 function calcSettlement(members, expenses) {
-  if (members.length === 0) return []
-  const n = members.length
-  // Sum paid per member
-  const paid = {}
-  members.forEach(m => { paid[m.name] = 0 })
-  expenses.forEach(e => {
-    if (e.paid_by && paid[e.paid_by] !== undefined) {
-      paid[e.paid_by] += e.amount
-    }
-  })
-  const total = expenses.reduce((s, e) => s + e.amount, 0)
-  const perPerson = total / n
+  if (members.length === 0) return null
+  const allNames = members.map(m => m.name)
 
-  // Net balance (positive = creditor, negative = debtor)
-  const balances = members.map(m => ({
-    name: m.name,
-    paid: paid[m.name],
-    balance: paid[m.name] - perPerson,
+  // owed[name] = how much this person owes in total
+  // paid[name] = how much this person paid in total
+  const paid = Object.fromEntries(allNames.map(n => [n, 0]))
+  const owed = Object.fromEntries(allNames.map(n => [n, 0]))
+
+  for (const exp of expenses) {
+    // Who actually splits this expense
+    const parts = (exp.participants && exp.participants.length > 0)
+      ? exp.participants.filter(p => allNames.includes(p))
+      : allNames
+
+    if (parts.length === 0) continue
+
+    const share = exp.amount / parts.length
+    for (const p of parts) {
+      owed[p] += share
+    }
+
+    if (exp.paid_by && paid[exp.paid_by] !== undefined) {
+      paid[exp.paid_by] += exp.amount
+    }
+  }
+
+  const total = expenses.reduce((s, e) => s + e.amount, 0)
+
+  const balances = allNames.map(name => ({
+    name,
+    paid: paid[name],
+    owed: owed[name],
+    balance: paid[name] - owed[name],
   }))
 
-  // Minimum transfer algorithm
+  // Minimum transfer
   const creditors = balances.filter(b => b.balance > 0.5).map(b => ({ ...b }))
   const debtors = balances.filter(b => b.balance < -0.5).map(b => ({ ...b }))
   creditors.sort((a, b) => b.balance - a.balance)
@@ -41,7 +56,7 @@ function calcSettlement(members, expenses) {
     if (Math.abs(debtors[di].balance) < 0.5) di++
   }
 
-  return { balances, transfers, total, perPerson }
+  return { balances, transfers, total }
 }
 
 export default function Settlement({ tripId, trip }) {
@@ -49,9 +64,7 @@ export default function Settlement({ tripId, trip }) {
   const [members, setMembers] = useState([])
   const [newMember, setNewMember] = useState('')
 
-  useEffect(() => {
-    loadData()
-  }, [tripId])
+  useEffect(() => { loadData() }, [tripId])
 
   async function loadData() {
     const [exps, mems] = await Promise.all([getExpenses(tripId), getMembers(tripId)])
@@ -73,7 +86,7 @@ export default function Settlement({ tripId, trip }) {
     loadData()
   }
 
-  const result = members.length > 0 ? calcSettlement(members, expenses) : null
+  const result = calcSettlement(members, expenses)
 
   return (
     <div>
@@ -90,10 +103,13 @@ export default function Settlement({ tripId, trip }) {
               <button className="btn btn-danger btn-sm" onClick={() => handleDeleteMember(m)}>削除</button>
             </div>
           ))}
+          <p style={{ fontSize: '0.78rem', color: 'var(--gray-500)', marginTop: '8px' }}>
+            ※ 支払者・対象者は「予算」タブの各支出で設定
+          </p>
         </div>
       </div>
 
-      {result && (
+      {result ? (
         <>
           <div style={{ fontWeight: 600, marginBottom: '0.75rem' }}>支払い内訳</div>
           <div className="settlement-table-wrap" style={{ marginBottom: '1.5rem' }}>
@@ -110,8 +126,8 @@ export default function Settlement({ tripId, trip }) {
                 {result.balances.map(b => (
                   <tr key={b.name}>
                     <td>{b.name}</td>
-                    <td style={{ textAlign: 'right' }}>¥{b.paid.toLocaleString()}</td>
-                    <td style={{ textAlign: 'right' }}>¥{Math.round(result.perPerson).toLocaleString()}</td>
+                    <td style={{ textAlign: 'right' }}>¥{Math.round(b.paid).toLocaleString()}</td>
+                    <td style={{ textAlign: 'right' }}>¥{Math.round(b.owed).toLocaleString()}</td>
                     <td style={{ textAlign: 'right', fontWeight: 600, color: b.balance > 0 ? 'var(--success)' : b.balance < 0 ? 'var(--danger)' : 'var(--gray-500)' }}>
                       {b.balance > 0 ? '+' : ''}{Math.round(b.balance).toLocaleString()}円
                     </td>
@@ -121,7 +137,7 @@ export default function Settlement({ tripId, trip }) {
               <tfoot>
                 <tr>
                   <td colSpan={4} style={{ padding: '0.75rem 1rem', fontWeight: 600, borderTop: '2px solid var(--gray-200)' }}>
-                    合計: ¥{result.total.toLocaleString()} / 一人あたり: ¥{Math.round(result.perPerson).toLocaleString()}
+                    合計支出: ¥{result.total.toLocaleString()}
                   </td>
                 </tr>
               </tfoot>
@@ -147,9 +163,7 @@ export default function Settlement({ tripId, trip }) {
             </ul>
           )}
         </>
-      )}
-
-      {!result && (
+      ) : (
         <div className="empty-state">メンバーを追加して精算を確認しましょう</div>
       )}
     </div>
