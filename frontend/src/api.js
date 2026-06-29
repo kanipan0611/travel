@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:8000'
+const BASE = `http://${window.location.hostname}:8000`
 
 async function req(method, path, body) {
   const opts = {
