@@ -1,0 +1,257 @@
+.trip-detail-header {
+  background: white;
+  border-radius: var(--radius);
+  border: 1px solid var(--gray-200);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.trip-detail-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.trip-detail-meta {
+  font-size: 0.875rem;
+  color: var(--gray-500);
+  margin-top: 0.25rem;
+}
+
+.spot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.spot-item {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.spot-item-name {
+  font-weight: 600;
+  flex: 1;
+}
+
+.spot-item-category {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+}
+
+.decision-badge {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 99px;
+  font-weight: 600;
+}
+
+.decision-go { background: #d1fae5; color: #065f46; }
+.decision-candidate { background: #fef3c7; color: #92400e; }
+.decision-hold { background: var(--gray-100); color: var(--gray-500); }
+
+.day-block {
+  margin-bottom: 1.5rem;
+}
+
+.day-block-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--gray-200);
+  color: var(--primary);
+}
+
+.schedule-item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 0.75rem;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+
+.schedule-time {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  min-width: 80px;
+  padding-top: 2px;
+}
+
+.schedule-title {
+  font-weight: 600;
+  flex: 1;
+}
+
+.schedule-memo {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin-top: 0.25rem;
+}
+
+.budget-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.budget-stat {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1rem;
+  text-align: center;
+}
+
+.budget-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.budget-stat-label {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin-top: 0.25rem;
+}
+
+.category-breakdown {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.category-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.category-label {
+  min-width: 100px;
+  font-size: 0.875rem;
+}
+
+.category-bar-track {
+  flex: 1;
+  height: 8px;
+  background: var(--gray-200);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.category-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--primary);
+}
+
+.category-amount {
+  min-width: 80px;
+  text-align: right;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.checklist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  margin-bottom: 0.5rem;
+}
+
+.checklist-item.checked { opacity: 0.5; }
+.checklist-item.checked .checklist-label { text-decoration: line-through; }
+
+.checklist-label { flex: 1; font-size: 0.9rem; }
+
+input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.settlement-table-wrap {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+
+.transfer-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.transfer-item {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 0.875rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.transfer-from { font-weight: 600; color: var(--danger); }
+.transfer-to { font-weight: 600; color: var(--success); }
+.transfer-amount { font-weight: 700; }
+
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.wishlist-card {
+  background: white;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+
+.wishlist-card-title {
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.wishlist-card-area {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  margin-bottom: 0.5rem;
+}
+
+.wishlist-card-memo {
+  font-size: 0.85rem;
+  color: var(--gray-700);
+}
+
+.wishlist-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
