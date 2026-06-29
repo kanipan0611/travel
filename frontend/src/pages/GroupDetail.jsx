@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { getGroupSummary, updateGroup, getTrips, updateTrip } from '../api.js'
+import { getGroupSummary, updateGroup, getTrips, updateTrip, createTrip } from '../api.js'
 import BudgetBar from '../components/BudgetBar.jsx'
 
 const STATUS_COLORS = { planning: '#94a3b8', confirmed: '#3b82f6', booked: '#8b5cf6', done: '#16a34a' }
@@ -24,6 +24,9 @@ export default function GroupDetail() {
   const [budgetInput, setBudgetInput] = useState('')
   const [editName, setEditName] = useState(false)
   const [nameInput, setNameInput] = useState('')
+  const [showNewTrip, setShowNewTrip] = useState(false)
+  const [newTripForm, setNewTripForm] = useState({ title: '', destination: '', start_date: '', end_date: '' })
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => { load() }, [id])
 
@@ -50,6 +53,25 @@ export default function GroupDetail() {
   async function assignTrip(tripId, groupId) {
     await updateTrip(tripId, { group_id: groupId })
     load()
+  }
+
+  async function handleCreateTrip(e) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      const trip = await createTrip({
+        title: newTripForm.title,
+        destination: newTripForm.destination,
+        start_date: newTripForm.start_date || null,
+        end_date: newTripForm.end_date || null,
+      })
+      await updateTrip(trip.id, { group_id: parseInt(id) })
+      setNewTripForm({ title: '', destination: '', start_date: '', end_date: '' })
+      setShowNewTrip(false)
+      load()
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (!summary) return <div className="empty-state">読み込み中...</div>
@@ -214,7 +236,44 @@ export default function GroupDetail() {
 
       {/* Assign trips */}
       <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <h3 style={{ marginBottom: 12 }}>旅行の管理</h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <h3>旅行の管理</h3>
+          <button className="btn-primary" onClick={() => setShowNewTrip(v => !v)}>
+            {showNewTrip ? 'キャンセル' : '＋ 旅行を新規作成'}
+          </button>
+        </div>
+
+        {showNewTrip && (
+          <form onSubmit={handleCreateTrip} style={{ background: 'var(--gray-50)', borderRadius: 8, padding: 16, marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div className="form-group" style={{ flex: 1, minWidth: 160 }}>
+                <label>旅行名 *</label>
+                <input required value={newTripForm.title} onChange={e => setNewTripForm({ ...newTripForm, title: e.target.value })} placeholder="例：京都旅行" />
+              </div>
+              <div className="form-group" style={{ flex: 1, minWidth: 160 }}>
+                <label>行先 *</label>
+                <input required value={newTripForm.destination} onChange={e => setNewTripForm({ ...newTripForm, destination: e.target.value })} placeholder="例：京都府" />
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
+                <label>出発日</label>
+                <input type="date" value={newTripForm.start_date} onChange={e => setNewTripForm({ ...newTripForm, start_date: e.target.value })} />
+              </div>
+              <div className="form-group" style={{ flex: 1, minWidth: 140 }}>
+                <label>帰着日</label>
+                <input type="date" value={newTripForm.end_date} onChange={e => setNewTripForm({ ...newTripForm, end_date: e.target.value })} />
+              </div>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+              <button type="button" className="btn-secondary" onClick={() => setShowNewTrip(false)}>キャンセル</button>
+              <button type="submit" className="btn-primary" disabled={saving}>
+                {saving ? '作成中...' : '作成してグループに追加'}
+              </button>
+            </div>
+          </form>
+        )}
+
         <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: 8 }}>このグループの旅行</div>
         {trips.length === 0 ? (
           <p className="empty-hint" style={{ marginBottom: 12 }}>旅行が追加されていません</p>
