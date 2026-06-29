@@ -24,10 +24,12 @@ class TripUpdate(BaseModel):
     end_date: Optional[str] = None
     budget_total: Optional[int] = None
     member_count: Optional[int] = None
+    group_id: Optional[int] = None
 
 class TripResponse(TripBase):
     id: int
     share_token: Optional[str] = None
+    group_id: Optional[int] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -185,6 +187,37 @@ class OverlapResult(BaseModel):
     common_dates: List[str]
     periods: List[dict]  # [{start, end, days}]
     submissions: List[AvailabilitySubmissionResponse]
+
+
+# TripGroup
+class TripGroupBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    budget_total: Optional[int] = None
+
+class TripGroupCreate(TripGroupBase):
+    pass
+
+class TripGroupUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    budget_total: Optional[int] = None
+
+class TripGroupResponse(TripGroupBase):
+    id: int
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class TripGroupSummary(BaseModel):
+    group: TripGroupResponse
+    trips: List[TripResponse]
+    total_spent: int
+    remaining: Optional[int]
+    category_totals: dict
+    timeline: List[dict]
 
 
 # Wishlist

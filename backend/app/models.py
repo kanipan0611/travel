@@ -5,6 +5,19 @@ from sqlalchemy.sql import func
 from app.database import Base
 
 
+class TripGroup(Base):
+    __tablename__ = "trip_groups"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    budget_total = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    trips = relationship("Trip", back_populates="group")
+
+
 class Trip(Base):
     __tablename__ = "trips"
 
@@ -17,9 +30,11 @@ class Trip(Base):
     end_date = Column(String, nullable=True)
     budget_total = Column(Integer, nullable=True)
     member_count = Column(Integer, default=1)
+    group_id = Column(Integer, ForeignKey("trip_groups.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+    group = relationship("TripGroup", back_populates="trips")
     spots = relationship("Spot", back_populates="trip", cascade="all, delete-orphan")
     expenses = relationship("Expense", back_populates="trip", cascade="all, delete-orphan")
     schedule_items = relationship("ScheduleItem", back_populates="trip", cascade="all, delete-orphan")

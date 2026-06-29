@@ -67,3 +67,11 @@ export const deleteWishlistItem = (id) => req('DELETE', `/wishlist/${id}`)
 
 // Share
 export const getTripByToken = (token) => req('GET', `/share/${token}/trip`)
+
+// Groups
+export const getGroups = () => req('GET', '/groups/')
+export const getGroup = (id) => req('GET', `/groups/${id}`)
+export const getGroupSummary = (id) => req('GET', `/groups/${id}/summary`)
+export const createGroup = (data) => req('POST', '/groups/', data)
+export const updateGroup = (id, data) => req('PATCH', `/groups/${id}`, data)
+export const deleteGroup = (id) => req('DELETE', `/groups/${id}`)
