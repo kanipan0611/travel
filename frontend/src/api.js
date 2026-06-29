@@ -65,6 +65,11 @@ export const createWishlistItem = (data) => req('POST', '/wishlist/', data)
 export const updateWishlistItem = (id, data) => req('PATCH', `/wishlist/${id}`, data)
 export const deleteWishlistItem = (id) => req('DELETE', `/wishlist/${id}`)
 
+// Spot Links
+export const getSpotLinks = (tripId, spotId) => req('GET', `/trips/${tripId}/spots/${spotId}/links/`)
+export const createSpotLink = (tripId, spotId, data) => req('POST', `/trips/${tripId}/spots/${spotId}/links/`, data)
+export const deleteSpotLink = (tripId, spotId, linkId) => req('DELETE', `/trips/${tripId}/spots/${spotId}/links/${linkId}`)
+
 // Share
 export const getTripByToken = (token) => req('GET', `/share/${token}/trip`)
 

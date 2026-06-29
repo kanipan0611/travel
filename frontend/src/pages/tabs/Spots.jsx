@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getSpots, createSpot, updateSpot, deleteSpot } from '../../api.js'
+import { getSpots, createSpot, updateSpot, deleteSpot, getSpotLinks, createSpotLink, deleteSpotLink } from '../../api.js'
 
 const DECISIONS = [
   { key: 'all', label: 'すべて' },
@@ -23,12 +23,33 @@ export default function Spots({ tripId }) {
   const [showModal, setShowModal] = useState(false)
   const [editSpot, setEditSpot] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [linksMap, setLinksMap] = useState({})
+  const [showLinkForm, setShowLinkForm] = useState({})
+  const [linkForm, setLinkForm] = useState({})
 
   useEffect(() => { loadSpots() }, [tripId])
 
   async function loadSpots() {
     const data = await getSpots(tripId)
     setSpots(data)
+    const map = {}
+    await Promise.all(data.map(async s => {
+      map[s.id] = await getSpotLinks(tripId, s.id)
+    }))
+    setLinksMap(map)
+  }
+
+  async function handleAddLink(spotId) {
+    const f = linkForm[spotId] || { label: '', url: '' }
+    if (!f.label.trim() || !f.url.trim()) return
+    const link = await createSpotLink(tripId, spotId, { label: f.label.trim(), url: f.url.trim() })
+    setLinksMap(m => ({ ...m, [spotId]: [...(m[spotId] || []), link] }))
+    setLinkForm(lf => ({ ...lf, [spotId]: { label: '', url: '' } }))
+  }
+
+  async function handleDeleteLink(spotId, linkId) {
+    await deleteSpotLink(tripId, spotId, linkId)
+    setLinksMap(m => ({ ...m, [spotId]: (m[spotId] || []).filter(l => l.id !== linkId) }))
   }
 
   function openCreate() {
@@ -103,6 +124,32 @@ export default function Spots({ tripId }) {
               <div className="spot-item-name">{s.name}</div>
               <div className="spot-item-category">{s.category}</div>
               {s.estimated_cost && <div style={{ fontSize: '0.8rem', color: 'var(--gray-500)' }}>¥{s.estimated_cost.toLocaleString()}</div>}
+              <div className="spot-links">
+                {(linksMap[s.id] || []).map(link => (
+                  <span key={link.id} className="spot-link-chip">
+                    <a href={link.url} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>
+                    <button className="spot-link-delete" onClick={() => handleDeleteLink(s.id, link.id)}>×</button>
+                  </span>
+                ))}
+              </div>
+              <button className="spot-link-toggle" onClick={() => setShowLinkForm(sf => ({ ...sf, [s.id]: !sf[s.id] }))}>
+                {showLinkForm[s.id] ? 'キャンセル' : 'リンクを追加'}
+              </button>
+              {showLinkForm[s.id] && (
+                <div className="spot-link-form">
+                  <input
+                    placeholder="ラベル（例：公式サイト）"
+                    value={(linkForm[s.id] || {}).label || ''}
+                    onChange={e => setLinkForm(lf => ({ ...lf, [s.id]: { ...(lf[s.id] || {}), label: e.target.value } }))}
+                  />
+                  <input
+                    placeholder="URL"
+                    value={(linkForm[s.id] || {}).url || ''}
+                    onChange={e => setLinkForm(lf => ({ ...lf, [s.id]: { ...(lf[s.id] || {}), url: e.target.value } }))}
+                  />
+                  <button className="btn btn-primary btn-sm" onClick={() => handleAddLink(s.id)}>追加</button>
+                </div>
+              )}
               <button className="btn btn-secondary btn-sm" onClick={() => openEdit(s)}>編集</button>
               <button className="btn btn-danger btn-sm" onClick={() => handleDelete(s)}>削除</button>
             </div>

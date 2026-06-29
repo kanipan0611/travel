@@ -58,6 +58,18 @@ class Spot(Base):
 
     trip = relationship("Trip", back_populates="spots")
     schedule_items = relationship("ScheduleItem", back_populates="spot")
+    links = relationship("SpotLink", back_populates="spot", cascade="all, delete-orphan")
+
+
+class SpotLink(Base):
+    __tablename__ = "spot_links"
+
+    id = Column(Integer, primary_key=True, index=True)
+    spot_id = Column(Integer, ForeignKey("spots.id"), nullable=False)
+    label = Column(String, nullable=False)
+    url = Column(String, nullable=False)
+
+    spot = relationship("Spot", back_populates="links")
 
 
 class Expense(Base):
@@ -68,6 +80,7 @@ class Expense(Base):
     category = Column(String, default="その他")  # 交通/宿泊/食事/アクティビティ/お土産/その他
     label = Column(String, nullable=False)
     amount = Column(Integer, nullable=False)
+    estimated_amount = Column(Integer, nullable=True)  # 見積もり額
     paid_by = Column(String, nullable=True)
     scheduled_day = Column(Integer, nullable=True)
     # JSON array of member names who share this expense. null = all members.

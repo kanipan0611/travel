@@ -76,7 +76,7 @@ export default function GroupDetail() {
 
   if (!summary) return <div className="empty-state">読み込み中...</div>
 
-  const { group, trips, total_spent, remaining, category_totals, timeline } = summary
+  const { group, trips, total_spent, estimated_total, remaining, category_totals, timeline } = summary
   const unassignedTrips = allTrips.filter(t => !t.group_id || t.group_id === null)
 
   const datedTrips = timeline.filter(t => t.start_date && t.end_date)
@@ -127,6 +127,12 @@ export default function GroupDetail() {
             <div className="budget-stat-value">¥{total_spent.toLocaleString()}</div>
             <div className="budget-stat-label">全体支出</div>
           </div>
+          {estimated_total > 0 && (
+            <div className="budget-stat">
+              <div className="budget-stat-value">¥{estimated_total.toLocaleString()}</div>
+              <div className="budget-stat-label">見積もり合計</div>
+            </div>
+          )}
           {group.budget_total && (
             <>
               <div className="budget-stat">

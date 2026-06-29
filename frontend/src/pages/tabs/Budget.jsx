@@ -9,6 +9,7 @@ function emptyForm(members) {
     category: '交通',
     label: '',
     amount: '',
+    estimated_amount: '',
     paid_by: members[0]?.name ?? '',
     scheduled_day: '',
     participants: members.map(m => m.name),
@@ -43,6 +44,7 @@ export default function Budget({ tripId, trip }) {
       category: exp.category,
       label: exp.label,
       amount: exp.amount,
+      estimated_amount: exp.estimated_amount ?? '',
       paid_by: exp.paid_by || '',
       scheduled_day: exp.scheduled_day || '',
       participants: exp.participants ?? members.map(m => m.name),
@@ -65,6 +67,7 @@ export default function Budget({ tripId, trip }) {
     const payload = {
       ...form,
       amount: parseInt(form.amount),
+      estimated_amount: form.estimated_amount ? parseInt(form.estimated_amount) : null,
       paid_by: form.paid_by || null,
       scheduled_day: form.scheduled_day ? parseInt(form.scheduled_day) : null,
       participants: form.participants.length > 0 ? form.participants : null,
@@ -85,11 +88,14 @@ export default function Budget({ tripId, trip }) {
   }
 
   const total = expenses.reduce((s, e) => s + e.amount, 0)
+  const estimatedTotal = expenses.reduce((s, e) => s + (e.estimated_amount ?? 0), 0)
   const divisor = perPerson ? (trip.member_count || 1) : 1
 
   const catMap = {}
+  const catEstMap = {}
   for (const exp of expenses) {
     catMap[exp.category] = (catMap[exp.category] || 0) + exp.amount
+    catEstMap[exp.category] = (catEstMap[exp.category] || 0) + (exp.estimated_amount ?? 0)
   }
   const maxCat = Math.max(...Object.values(catMap), 1)
 
@@ -124,6 +130,19 @@ export default function Budget({ tripId, trip }) {
         </div>
       )}
 
+      {estimatedTotal > 0 && (
+        <div className="budget-compare-row" style={{ marginBottom: '1rem' }}>
+          <span className="budget-compare-label">見積もり合計:</span>
+          <span>¥{Math.floor(estimatedTotal / divisor).toLocaleString()}</span>
+          <span className="budget-compare-label" style={{ marginLeft: 12 }}>実績合計:</span>
+          <span>¥{Math.floor(total / divisor).toLocaleString()}</span>
+          <span className="budget-compare-label" style={{ marginLeft: 12 }}>差額:</span>
+          <span className={estimatedTotal - total >= 0 ? 'budget-diff-pos' : 'budget-diff-neg'}>
+            {estimatedTotal - total >= 0 ? '+' : ''}¥{Math.floor((estimatedTotal - total) / divisor).toLocaleString()}
+          </span>
+        </div>
+      )}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
         <label style={{ fontSize: '0.875rem' }}>
           <input type="checkbox" checked={perPerson} onChange={e => setPerPerson(e.target.checked)} style={{ width: 'auto', marginRight: '0.25rem' }} />
@@ -141,7 +160,10 @@ export default function Budget({ tripId, trip }) {
               <div className="category-bar-track">
                 <div className="category-bar-fill" style={{ width: `${(catMap[cat] / maxCat) * 100}%` }} />
               </div>
-              <div className="category-amount">¥{Math.floor(catMap[cat] / divisor).toLocaleString()}</div>
+              <div className="category-amount">
+                ¥{Math.floor(catMap[cat] / divisor).toLocaleString()}
+                {catEstMap[cat] > 0 && <span style={{ color: 'var(--gray-500)', fontSize: '0.75rem', marginLeft: 4 }}>(見積: ¥{Math.floor(catEstMap[cat] / divisor).toLocaleString()})</span>}
+              </div>
             </div>
           ))}
         </div>
@@ -155,13 +177,14 @@ export default function Budget({ tripId, trip }) {
               <th>内容</th>
               <th>支払者</th>
               <th>対象者</th>
+              <th style={{ textAlign: 'right' }}>見積もり</th>
               <th style={{ textAlign: 'right' }}>金額</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {expenses.length === 0 ? (
-              <tr><td colSpan={6} className="empty-state">支出がありません</td></tr>
+              <tr><td colSpan={7} className="empty-state">支出がありません</td></tr>
             ) : expenses.map(exp => {
               const parts = exp.participants ?? allNames
               return (
@@ -171,6 +194,9 @@ export default function Budget({ tripId, trip }) {
                   <td style={{ color: 'var(--gray-500)' }}>{exp.paid_by || '-'}</td>
                   <td style={{ fontSize: '0.78rem', color: 'var(--gray-500)' }}>
                     {parts.length === allNames.length ? '全員' : parts.join('・')}
+                  </td>
+                  <td style={{ textAlign: 'right', color: 'var(--gray-500)' }}>
+                    {exp.estimated_amount != null ? `¥${Math.floor(exp.estimated_amount / divisor).toLocaleString()}` : '—'}
                   </td>
                   <td style={{ textAlign: 'right', fontWeight: 600 }}>¥{Math.floor(exp.amount / divisor).toLocaleString()}</td>
                   <td>
@@ -211,6 +237,12 @@ export default function Budget({ tripId, trip }) {
                   <label>金額 (円) *</label>
                   <input required type="number" min="0" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })} />
                 </div>
+                <div className="form-group">
+                  <label>見積もり額（円）</label>
+                  <input type="number" min="0" value={form.estimated_amount} onChange={e => setForm({ ...form, estimated_amount: e.target.value })} placeholder="任意" />
+                </div>
+              </div>
+              <div className="row">
                 <div className="form-group">
                   <label>支払者</label>
                   {members.length > 0 ? (

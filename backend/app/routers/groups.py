@@ -58,9 +58,12 @@ def get_group_summary(group_id: int, db: Session = Depends(get_db)):
 
     category_totals = {c: 0 for c in CATEGORIES}
     total_spent = 0
+    estimated_total = 0
     for trip in trips:
         for exp in db.query(models.Expense).filter_by(trip_id=trip.id).all():
             total_spent += exp.amount
+            if exp.estimated_amount is not None:
+                estimated_total += exp.estimated_amount
             cat = exp.category if exp.category in category_totals else 'その他'
             category_totals[cat] += exp.amount
 
@@ -89,6 +92,7 @@ def get_group_summary(group_id: int, db: Session = Depends(get_db)):
         group=g,
         trips=trips,
         total_spent=total_spent,
+        estimated_total=estimated_total,
         remaining=remaining,
         category_totals=category_totals,
         timeline=timeline,

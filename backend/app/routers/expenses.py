@@ -21,6 +21,7 @@ def _serialize(exp) -> schemas.ExpenseResponse:
         category=exp.category,
         label=exp.label,
         amount=exp.amount,
+        estimated_amount=exp.estimated_amount,
         paid_by=exp.paid_by,
         scheduled_day=exp.scheduled_day,
         participants=participants,

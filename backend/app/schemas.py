@@ -67,11 +67,31 @@ class SpotResponse(SpotBase):
         from_attributes = True
 
 
+# SpotLink
+class SpotLinkCreate(BaseModel):
+    label: str
+    url: str
+
+class SpotLinkUpdate(BaseModel):
+    label: Optional[str] = None
+    url: Optional[str] = None
+
+class SpotLinkResponse(BaseModel):
+    id: int
+    spot_id: int
+    label: str
+    url: str
+
+    class Config:
+        from_attributes = True
+
+
 # Expense
 class ExpenseBase(BaseModel):
     category: str = "その他"
     label: str
     amount: int
+    estimated_amount: Optional[int] = None
     paid_by: Optional[str] = None
     scheduled_day: Optional[int] = None
     participants: Optional[List[str]] = None  # null = all members
@@ -83,6 +103,7 @@ class ExpenseUpdate(BaseModel):
     category: Optional[str] = None
     label: Optional[str] = None
     amount: Optional[int] = None
+    estimated_amount: Optional[int] = None
     paid_by: Optional[str] = None
     scheduled_day: Optional[int] = None
     participants: Optional[List[str]] = None
@@ -215,6 +236,7 @@ class TripGroupSummary(BaseModel):
     group: TripGroupResponse
     trips: List[TripResponse]
     total_spent: int
+    estimated_total: int
     remaining: Optional[int]
     category_totals: dict
     timeline: List[dict]

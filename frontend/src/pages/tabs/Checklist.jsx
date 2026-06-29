@@ -45,8 +45,10 @@ export default function Checklist({ tripId }) {
     loadItems()
   }
 
-  const checked = items.filter(i => i.is_checked)
+  const regularItems = items.filter(i => !i.label.startsWith('【'))
+  const checkedRegular = regularItems.filter(i => i.is_checked)
   const unchecked = items.filter(i => !i.is_checked)
+  const checked = items.filter(i => i.is_checked)
 
   return (
     <div>
@@ -63,27 +65,37 @@ export default function Checklist({ tripId }) {
       </form>
 
       <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: 'var(--gray-500)' }}>
-        {checked.length}/{items.length} 件完了
+        {checkedRegular.length} / {regularItems.length} 完了
       </div>
 
       <div>
-        {unchecked.map(item => (
-          <div key={item.id} className="checklist-item">
-            <input type="checkbox" checked={false} onChange={() => toggleCheck(item)} />
-            <div className="checklist-label">{item.label}</div>
-            <button className="btn btn-danger btn-sm" onClick={() => handleDelete(item)}>削除</button>
-          </div>
-        ))}
+        {unchecked.map(item => {
+          if (item.label.startsWith('【')) {
+            return <div key={item.id} className="checklist-category-header">{item.label}</div>
+          }
+          return (
+            <div key={item.id} className="checklist-item">
+              <input type="checkbox" checked={false} onChange={() => toggleCheck(item)} />
+              <div className="checklist-label">{item.label}</div>
+              <button className="btn btn-danger btn-sm" onClick={() => handleDelete(item)}>削除</button>
+            </div>
+          )
+        })}
         {checked.length > 0 && (
           <>
             <div style={{ fontSize: '0.8rem', color: 'var(--gray-500)', margin: '0.75rem 0 0.5rem', fontWeight: 600 }}>完了済み</div>
-            {checked.map(item => (
-              <div key={item.id} className="checklist-item checked">
-                <input type="checkbox" checked onChange={() => toggleCheck(item)} />
-                <div className="checklist-label">{item.label}</div>
-                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(item)}>削除</button>
-              </div>
-            ))}
+            {checked.map(item => {
+              if (item.label.startsWith('【')) {
+                return <div key={item.id} className="checklist-category-header">{item.label}</div>
+              }
+              return (
+                <div key={item.id} className="checklist-item checked">
+                  <input type="checkbox" checked onChange={() => toggleCheck(item)} />
+                  <div className="checklist-label">{item.label}</div>
+                  <button className="btn btn-danger btn-sm" onClick={() => handleDelete(item)}>削除</button>
+                </div>
+              )
+            })}
           </>
         )}
         {items.length === 0 && <div className="empty-state">持ち物リストが空です</div>}

@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine
 from app import models
-from app.routers import trips, spots, expenses, schedule, checklist, members, wishlist, availability, share, groups
+from app.routers import trips, spots, expenses, schedule, checklist, members, wishlist, availability, share, groups, spot_links
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -26,3 +26,4 @@ app.include_router(wishlist.router)
 app.include_router(availability.router)
 app.include_router(share.router)
 app.include_router(groups.router)
+app.include_router(spot_links.router)
