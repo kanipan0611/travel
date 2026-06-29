@@ -2,6 +2,37 @@ import { useState } from 'react'
 import { updateTrip, deleteTrip } from '../../api.js'
 import { useNavigate } from 'react-router-dom'
 
+function ShareLinkCard({ trip }) {
+  const [copied, setCopied] = useState(false)
+  const shareUrl = `${window.location.origin}/share/${trip.share_token}`
+
+  function handleCopy() {
+    navigator.clipboard.writeText(shareUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  return (
+    <div className="card" style={{ padding: '1.5rem', marginTop: '1rem' }}>
+      <h2 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>🔗 共有リンク</h2>
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+        <input
+          readOnly
+          value={shareUrl}
+          style={{ flex: 1, padding: '0.5rem', border: '1px solid var(--gray-300)', borderRadius: '0.375rem', fontSize: '0.875rem', background: 'var(--gray-50)' }}
+          onFocus={e => e.target.select()}
+        />
+        <button className="btn btn-secondary btn-sm" onClick={handleCopy}>
+          {copied ? 'コピーしました！' : 'コピー'}
+        </button>
+      </div>
+      <p style={{ fontSize: '0.75rem', color: 'var(--gray-500)', marginTop: '0.5rem' }}>
+        このリンクを知っている人は旅行を閲覧・編集できます
+      </p>
+    </div>
+  )
+}
+
 export default function Overview({ trip, onUpdate }) {
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
@@ -35,6 +66,7 @@ export default function Overview({ trip, onUpdate }) {
 
   if (!editing) {
     return (
+      <div>
       <div className="card" style={{ padding: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
           <h2 style={{ fontSize: '1.125rem', fontWeight: 600 }}>旅行情報</h2>
@@ -54,6 +86,8 @@ export default function Overview({ trip, onUpdate }) {
             <tr><td style={{ fontWeight: 600, padding: '0.5rem 0', color: 'var(--gray-500)' }}>予算</td><td>{trip.budget_total ? `¥${trip.budget_total.toLocaleString()}` : '-'}</td></tr>
           </tbody>
         </table>
+      </div>
+      {trip.share_token && <ShareLinkCard trip={trip} />}
       </div>
     )
   }

@@ -1,3 +1,4 @@
+import uuid
 from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey, DateTime, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -9,6 +10,7 @@ class Trip(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
+    share_token = Column(String, unique=True, index=True, default=lambda: uuid.uuid4().hex)
     destination = Column(String, nullable=False)
     status = Column(String, default="planning")  # planning/confirmed/booked/done
     start_date = Column(String, nullable=True)

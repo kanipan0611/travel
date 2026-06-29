@@ -51,6 +51,28 @@ App runs at http://localhost:5173
 - **Member**: name (for settlement)
 - **Wishlist**: name, area, memo
 
+## デプロイ方法
+
+### バックエンド (Railway)
+1. [Railway](https://railway.app) でアカウント作成
+2. 「New Project」→「Deploy from GitHub repo」→ このリポジトリを選択
+3. 「Add Service」→「PostgreSQL」でDBを追加
+4. バックエンドサービスの環境変数に `DATABASE_URL` が自動設定される
+5. Root Directory を `backend` に設定
+6. デプロイ完了後、バックエンドのURLをコピー
+
+### フロントエンド (Vercel)
+1. [Vercel](https://vercel.com) でアカウント作成
+2. 「New Project」→ このリポジトリをインポート
+3. Root Directory を `frontend` に設定
+4. 環境変数 `VITE_API_BASE_URL` にRailwayのバックエンドURLを設定
+5. デプロイ
+
+### 共有機能の使い方
+- 旅行詳細 → 概要タブ → 「🔗 共有リンク」セクション
+- URLをコピーして友達にLINEやメッセージで送る
+- リンクを知っている人は誰でも旅行を閲覧・編集できる
+
 ## Settlement Algorithm
 
 Implements minimum-transfer settlement:

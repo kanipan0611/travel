@@ -1,4 +1,4 @@
-const BASE = `http://${window.location.hostname}:8000`
+const BASE = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:8000`
 
 async function req(method, path, body) {
   const opts = {
@@ -64,3 +64,6 @@ export const getWishlist = () => req('GET', '/wishlist/')
 export const createWishlistItem = (data) => req('POST', '/wishlist/', data)
 export const updateWishlistItem = (id, data) => req('PATCH', `/wishlist/${id}`, data)
 export const deleteWishlistItem = (id) => req('DELETE', `/wishlist/${id}`)
+
+// Share
+export const getTripByToken = (token) => req('GET', `/share/${token}/trip`)
