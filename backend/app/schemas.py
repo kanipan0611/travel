@@ -88,10 +88,10 @@ class SpotLinkResponse(BaseModel):
 
 # Expense
 class ExpenseBase(BaseModel):
-    category: str = "その他"
+    category: List[str] = ["その他"]   # multiple categories allowed
     label: str
-    amount: int
-    estimated_amount: Optional[int] = None
+    estimated_amount: int               # required: budget/estimate
+    amount: int = 0                     # optional: actual spend (0 until paid)
     paid_by: Optional[str] = None
     scheduled_day: Optional[int] = None
     participants: Optional[List[str]] = None  # null = all members
@@ -100,10 +100,10 @@ class ExpenseCreate(ExpenseBase):
     trip_id: int
 
 class ExpenseUpdate(BaseModel):
-    category: Optional[str] = None
+    category: Optional[List[str]] = None
     label: Optional[str] = None
-    amount: Optional[int] = None
     estimated_amount: Optional[int] = None
+    amount: Optional[int] = None
     paid_by: Optional[str] = None
     scheduled_day: Optional[int] = None
     participants: Optional[List[str]] = None

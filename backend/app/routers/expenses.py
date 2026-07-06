@@ -8,6 +8,20 @@ from app import models, schemas
 router = APIRouter(prefix="/trips/{trip_id}/expenses", tags=["expenses"])
 
 
+def _parse_category(raw) -> list:
+    if raw is None:
+        return ["その他"]
+    if isinstance(raw, list):
+        return raw
+    try:
+        parsed = json.loads(raw)
+        if isinstance(parsed, list):
+            return parsed
+    except Exception:
+        pass
+    return [raw]  # legacy plain string
+
+
 def _serialize(exp) -> schemas.ExpenseResponse:
     participants = None
     if exp.participants:
@@ -18,7 +32,7 @@ def _serialize(exp) -> schemas.ExpenseResponse:
     return schemas.ExpenseResponse(
         id=exp.id,
         trip_id=exp.trip_id,
-        category=exp.category,
+        category=_parse_category(exp.category),
         label=exp.label,
         amount=exp.amount,
         estimated_amount=exp.estimated_amount,
@@ -40,7 +54,9 @@ def create_expense(trip_id: int, expense: schemas.ExpenseBase, db: Session = Dep
         raise HTTPException(status_code=404, detail="Trip not found")
     data = expense.model_dump()
     participants = data.pop("participants", None)
+    category = data.pop("category", ["その他"])
     db_expense = models.Expense(**data, trip_id=trip_id,
+                                category=json.dumps(category),
                                 participants=json.dumps(participants) if participants is not None else None)
     db.add(db_expense)
     db.commit()
@@ -57,6 +73,9 @@ def update_expense(trip_id: int, expense_id: int, expense_update: schemas.Expens
     if "participants" in update_data:
         p = update_data.pop("participants")
         expense.participants = json.dumps(p) if p is not None else None
+    if "category" in update_data:
+        c = update_data.pop("category")
+        expense.category = json.dumps(c) if c is not None else json.dumps(["その他"])
     for key, value in update_data.items():
         setattr(expense, key, value)
     db.commit()
