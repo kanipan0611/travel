@@ -12,6 +12,7 @@ class TripGroup(Base):
     name = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     budget_total = Column(Integer, nullable=True)
+    share_token = Column(String, unique=True, index=True, default=lambda: uuid.uuid4().hex)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 

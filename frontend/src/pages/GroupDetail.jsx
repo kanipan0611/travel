@@ -25,6 +25,7 @@ export default function GroupDetail() {
   const [editName, setEditName] = useState(false)
   const [nameInput, setNameInput] = useState('')
   const [showNewTrip, setShowNewTrip] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [newTripForm, setNewTripForm] = useState({ title: '', destination: '', start_date: '', end_date: '' })
   const [saving, setSaving] = useState(false)
 
@@ -53,6 +54,13 @@ export default function GroupDetail() {
   async function assignTrip(tripId, groupId) {
     await updateTrip(tripId, { group_id: groupId })
     load()
+  }
+
+  function copyGroupLink() {
+    const url = `${window.location.origin}/share/group/${group.share_token}`
+    navigator.clipboard.writeText(url)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
   }
 
   async function handleCreateTrip(e) {
@@ -104,6 +112,25 @@ export default function GroupDetail() {
         </div>
         <Link to="/groups" style={{ fontSize: '0.875rem', color: 'var(--primary)' }}>← 統合ビュー一覧</Link>
       </div>
+
+      {/* Share link */}
+      {group.share_token && (
+        <div className="card" style={{ padding: '12px 16px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.875rem', color: 'var(--gray-500)', flexShrink: 0 }}>🔗 共有リンク</span>
+          <input
+            readOnly
+            value={`${window.location.origin}/share/group/${group.share_token}`}
+            style={{ flex: 1, minWidth: 200, fontSize: '0.8rem', color: 'var(--gray-700)', background: 'var(--gray-50)', border: '1px solid var(--gray-200)', borderRadius: 6, padding: '4px 8px' }}
+            onClick={e => e.target.select()}
+          />
+          <button className="btn-primary" style={{ padding: '4px 14px', fontSize: '0.85rem' }} onClick={copyGroupLink}>
+            {copied ? 'コピー済み ✓' : 'コピー'}
+          </button>
+          <span style={{ fontSize: '0.75rem', color: 'var(--gray-500)', width: '100%' }}>
+            このリンクを知っている人は統合ビュー・各旅行の閲覧と編集ができます
+          </span>
+        </div>
+      )}
 
       {/* Budget overview */}
       <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
@@ -285,8 +312,13 @@ export default function GroupDetail() {
           <p className="empty-hint" style={{ marginBottom: 12 }}>旅行が追加されていません</p>
         ) : (
           trips.map(trip => (
-            <div key={trip.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--gray-100)' }}>
-              <Link to={`/trips/${trip.id}`} style={{ fontSize: '0.875rem' }}>{trip.title}</Link>
+            <div key={trip.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--gray-100)', gap: 8 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLORS[trip.status] || '#94a3b8', flexShrink: 0 }} />
+              <Link to={`/trips/${trip.id}`} style={{ flex: 1, fontSize: '0.875rem', fontWeight: 500 }}>{trip.title}</Link>
+              <span style={{ fontSize: '0.78rem', color: 'var(--gray-500)' }}>{STATUS_LABELS[trip.status]}</span>
+              <Link to={`/trips/${trip.id}`} style={{ fontSize: '0.8rem', color: 'var(--primary)', padding: '2px 10px', border: '1px solid var(--gray-200)', borderRadius: 6, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+                詳細 →
+              </Link>
               <button className="btn-danger-sm" onClick={() => assignTrip(trip.id, null)}>除外</button>
             </div>
           ))

@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getTripByToken } from '../api.js'
+import { getTripByToken, getGroupByToken } from '../api.js'
 
 export default function ShareRedirect() {
-  const { token } = useParams()
+  const { token, type } = useParams()
   const navigate = useNavigate()
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    getTripByToken(token)
-      .then(trip => navigate(`/trips/${trip.id}`, { replace: true }))
+    const fn = type === 'group' ? getGroupByToken : getTripByToken
+    const path = type === 'group'
+      ? (g) => `/groups/${g.id}`
+      : (t) => `/trips/${t.id}`
+
+    fn(token)
+      .then(obj => navigate(path(obj), { replace: true }))
       .catch(() => setError(true))
-  }, [token])
+  }, [token, type])
 
   if (error) return (
     <div style={{ padding: '2rem', textAlign: 'center' }}>

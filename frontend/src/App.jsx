@@ -23,6 +23,7 @@ export default function App() {
           <Route path="/trips/:id/*" element={<TripDetail />} />
           <Route path="/wishlist" element={<Wishlist />} />
           <Route path="/share/:token" element={<ShareRedirect />} />
+          <Route path="/share/group/:token" element={<ShareRedirect />} />
           <Route path="/groups" element={<GroupDashboard />} />
           <Route path="/groups/:id" element={<GroupDetail />} />
         </Routes>

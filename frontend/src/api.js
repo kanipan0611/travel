@@ -72,6 +72,7 @@ export const deleteSpotLink = (tripId, spotId, linkId) => req('DELETE', `/trips/
 
 // Share
 export const getTripByToken = (token) => req('GET', `/share/${token}/trip`)
+export const getGroupByToken = (token) => req('GET', `/share/group/${token}/group`)
 
 // Groups
 export const getGroups = () => req('GET', '/groups/')
