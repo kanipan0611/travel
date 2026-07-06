@@ -3,20 +3,21 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { getTripByToken, getGroupByToken } from '../api.js'
 
 export default function ShareRedirect() {
-  const { token, type } = useParams()
+  const { token } = useParams()
   const navigate = useNavigate()
   const [error, setError] = useState(false)
 
   useEffect(() => {
-    const fn = type === 'group' ? getGroupByToken : getTripByToken
-    const path = type === 'group'
+    const isGroup = window.location.pathname.includes('/share/group/')
+    const fn = isGroup ? getGroupByToken : getTripByToken
+    const path = isGroup
       ? (g) => `/groups/${g.id}`
       : (t) => `/trips/${t.id}`
 
     fn(token)
       .then(obj => navigate(path(obj), { replace: true }))
       .catch(() => setError(true))
-  }, [token, type])
+  }, [token])
 
   if (error) return (
     <div style={{ padding: '2rem', textAlign: 'center' }}>
