@@ -35,7 +35,7 @@ export default function GroupDashboard() {
     <div>
       <div className="section-header">
         <h2>統合ビュー</h2>
-        <button className="btn-primary" onClick={() => setShowForm(v => !v)}>
+        <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
           {showForm ? 'キャンセル' : '＋ グループを作成'}
         </button>
       </div>
