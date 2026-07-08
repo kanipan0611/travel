@@ -102,13 +102,16 @@ export default function Budget({ tripId, trip }) {
   const estimatedTotal = expenses.reduce((s, e) => s + (e.estimated_amount ?? 0), 0)
   const divisor = perPerson ? (trip.member_count || 1) : 1
 
-  // Bar chart uses estimated_amount as primary, split equally across multiple categories
+  // Bar chart: estimated and actual split equally across multiple categories
   const catEstMap = {}
+  const catActMap = {}
   for (const exp of expenses) {
     const cats = Array.isArray(exp.category) ? exp.category : [exp.category || 'その他']
     const estPerCat = (exp.estimated_amount ?? 0) / cats.length
+    const actPerCat = (exp.amount || 0) / cats.length
     for (const cat of cats) {
       catEstMap[cat] = (catEstMap[cat] || 0) + estPerCat
+      catActMap[cat] = (catActMap[cat] || 0) + actPerCat
     }
   }
   const maxCat = Math.max(...Object.values(catEstMap), 1)
@@ -171,15 +174,29 @@ export default function Budget({ tripId, trip }) {
 
       {Object.keys(catEstMap).length > 0 && (
         <div className="category-breakdown">
-          <div style={{ fontWeight: 600, marginBottom: '1rem' }}>カテゴリ別（見積もり）</div>
+          <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>カテゴリ別</div>
+          <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', color: 'var(--gray-500)', marginBottom: '0.75rem' }}>
+            <span><span style={{ display: 'inline-block', width: 12, height: 12, background: 'var(--primary)', opacity: 0.25, borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }}></span>予算</span>
+            <span><span style={{ display: 'inline-block', width: 12, height: 12, background: 'var(--primary)', borderRadius: 2, marginRight: 4, verticalAlign: 'middle' }}></span>実績</span>
+          </div>
           {CATEGORIES.filter(c => catEstMap[c]).map(cat => (
             <div key={cat} className="category-row">
               <div className="category-label">{cat}</div>
-              <div className="category-bar-track">
-                <div className="category-bar-fill" style={{ width: `${(catEstMap[cat] / maxCat) * 100}%` }} />
+              <div className="category-bar-track" style={{ position: 'relative' }}>
+                {/* 予算バー（薄い） */}
+                <div className="category-bar-fill" style={{ width: `${(catEstMap[cat] / maxCat) * 100}%`, opacity: 0.25, position: 'absolute', top: 0, left: 0, height: '100%' }} />
+                {/* 実績バー（濃い） */}
+                {catActMap[cat] > 0 && (
+                  <div className="category-bar-fill" style={{ width: `${(catActMap[cat] / maxCat) * 100}%`, position: 'absolute', top: 0, left: 0, height: '100%' }} />
+                )}
               </div>
               <div className="category-amount">
-                ¥{Math.floor(catEstMap[cat] / divisor).toLocaleString()}
+                <span>¥{Math.floor(catEstMap[cat] / divisor).toLocaleString()}</span>
+                {catActMap[cat] > 0 && (
+                  <span style={{ color: 'var(--gray-500)', fontSize: '0.75rem', marginLeft: 4 }}>
+                    / ¥{Math.floor(catActMap[cat] / divisor).toLocaleString()}
+                  </span>
+                )}
               </div>
             </div>
           ))}
