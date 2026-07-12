@@ -14,9 +14,24 @@ export default function ShareRedirect() {
       ? (g) => `/groups/${g.id}`
       : (t) => `/trips/${t.id}`
 
-    fn(token)
-      .then(obj => navigate(path(obj), { replace: true }))
-      .catch(() => setError(true))
+    // Render無料プランのスリープ復帰待ちのため、失敗してもしばらくリトライする
+    let cancelled = false
+    async function resolve() {
+      for (let i = 0; i < 6; i++) {
+        try {
+          const obj = await fn(token)
+          if (!cancelled) navigate(path(obj), { replace: true })
+          return
+        } catch (e) {
+          // 404（トークン不明）は即エラー表示、それ以外はサーバー起動待ちとみなして再試行
+          if (String(e.message).includes('not found') || String(e.message).includes('Not Found')) break
+          await new Promise(r => setTimeout(r, 10000))
+        }
+      }
+      if (!cancelled) setError(true)
+    }
+    resolve()
+    return () => { cancelled = true }
   }, [token])
 
   if (error) return (
@@ -25,5 +40,12 @@ export default function ShareRedirect() {
       <p style={{ color: '#6b7280', marginTop: '0.5rem' }}>共有リンクが削除されたか、URLが間違っています。</p>
     </div>
   )
-  return <div style={{ padding: '2rem', textAlign: 'center' }}>読み込み中...</div>
+  return (
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <p>読み込み中...</p>
+      <p style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.5rem' }}>
+        サーバー起動中の場合、最大1分ほどかかることがあります
+      </p>
+    </div>
+  )
 }
